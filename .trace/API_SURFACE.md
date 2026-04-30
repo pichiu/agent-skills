@@ -58,7 +58,9 @@ graph TD
 
 ---
 
-## 1. Slash Commands 完整參考（7 個）
+## 1. Slash Commands 完整參考
+
+### 1a. Claude Code（`.claude/commands/*.md`，YAML+Markdown）
 
 | Command | Description（frontmatter 原文）| 觸發的 Skill / Persona | 主要輸出產物 |
 |---------|-------------------------------|----------------------|------------|
@@ -99,6 +101,34 @@ graph TD
 1. 變更涉及 ≤ 2 個檔案
 2. diff ≤ 50 行
 3. 未觸及 auth、payments、data access 或 config/env
+
+### 1b. Gemini CLI（`.gemini/commands/*.toml`，TOML 格式）
+
+<!-- 更新於 2026-04-30，commit range: 1f66d57..19e49a0 -->
+
+格式規格（與 Claude Code 的 YAML+Markdown 不同）：
+```toml
+description = "一句話描述"
+prompt = """
+執行指令的完整說明...
+"""
+```
+
+| Gemini CLI Command | 對應 Claude Code 指令 | 觸發技能 | 差異說明 |
+|-------------------|---------------------|---------|---------|
+| `/spec` | `/spec` | `spec-driven-development` | 邏輯一致 |
+| `/planning` | `/plan` | `planning-and-task-breakdown` | **名稱不同**：`/plan` 與 Gemini CLI 內建指令衝突 |
+| `/build` | `/build` | `incremental-implementation` + TDD | 一致 |
+| `/test` | `/test` | `test-driven-development` | 一致 |
+| `/review` | `/review` | `code-review-and-quality` | 一致 |
+| `/code-simplify` | `/code-simplify` | `code-simplification` | 一致 |
+| `/ship` | `/ship` | fan-out（適配 Gemini CLI subagent 模型） | Sub-agent 呼叫方式不同：使用 `.gemini/agents/` tool 名稱；退化模式支援循序執行 |
+
+**Gemini CLI `/ship` 差異**：
+- Sub-agent 觸發：Gemini CLI 中 `.gemini/agents/<name>.md` 變成可呼叫的 tool，使用 `@code-reviewer` 語法顯式觸發
+- 若 sub-agents 不可用，自動退化為循序執行（fan-out 仍能運作）
+
+<!-- 更新結束 -->
 
 ---
 
@@ -446,11 +476,11 @@ path = .claude/sdd-cache/<key>.json
 | 平台 | 安裝指令 | Skills 自動發現 | Slash Commands | Personas | SessionStart Hook |
 |------|---------|---------------|----------------|---------|-----------------|
 | **Claude Code** | `/plugin marketplace add addyosmani/agent-skills`<br/>`/plugin install agent-skills@addy-agent-skills` | 自動（SessionStart） | 全部 7 個 | subagents | 支援 |
-| **Gemini CLI** | `gemini skills install https://github.com/addyosmani/agent-skills.git --path skills` | 自動 | 不支援 | 不支援 | 不支援 |
+| **Gemini CLI** | `gemini skills install https://github.com/addyosmani/agent-skills.git --path skills` | 自動 | **全部 7 個**（`.gemini/commands/`，`/planning` 而非 `/plan`） | 不支援 | 不支援 |
 | **Cursor** | `mkdir -p .cursor/rules && cp agent-skills/skills/*/SKILL.md .cursor/rules/` | 需手動複製 | 不支援 | 不支援 | 不支援 |
 | **Windsurf** | 參閱 `docs/windsurf-setup.md` | 需手動設定 | 不支援 | 不支援 | 不支援 |
 | **GitHub Copilot** | 參閱 `docs/copilot-setup.md`；SKILL.md → `.github/copilot-instructions.md` | 需手動設定 | 不支援 | 部分支援 | 不支援 |
-| **OpenCode** | `AGENTS.md` 意圖映射（內建） | 自動（`skill` tool） | 不支援（用意圖映射替代） | 部分支援 | 不支援 |
+| **OpenCode** | `AGENTS.md` 意圖映射（內建）；**`.opencode/skills` symlink 自動發現** | 自動（symlink + `skill` tool） | 不支援（用意圖映射替代） | 部分支援 | 不支援 |
 | **Kiro IDE** | 複製至 `.kiro/skills/`（Project 或 Global 層級） | 未驗證 | 不支援 | 不支援 | 不支援 |
 
 ---
