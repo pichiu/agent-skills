@@ -24,7 +24,7 @@
 |------|---------|------|
 | `git` | 任意版本 | Clone 與版本管理 |
 | `bash` | 3.2+ | 執行 hook 腳本 |
-| `jq` | 任意版本 | SDD cache hook 執行（可選，但缺少則 cache 功能不可用） |
+| `jq` | 任意版本 | **SessionStart hook 必需**（`session-start.sh` 用於 JSON escape）；SDD cache hook 亦需要。缺少時 session-start hook 輸出 INFO 訊息並退化，skills 仍可個別使用。 |
 | `curl` | 任意版本 | SDD cache hook 的 HTTP revalidation |
 | `shasum` 或 `sha256sum` | 任意版本 | SDD cache key 計算（兩者自動偵測） |
 | `node` + `npm` | Node 18+ | 安裝 Claude Code CLI 進行 plugin 驗證 |
@@ -35,7 +35,7 @@
 |------|------|
 | Claude Code CLI | 原生 Plugin 支援（slash commands、hooks） |
 | Cursor | 透過 `.cursor/rules/` 或 `.cursorrules` 載入 |
-| Gemini CLI | `gemini skills install` |
+| Gemini CLI | `gemini skills install`；從專案根目錄執行可自動使用 `.gemini/commands/` 的 slash commands |
 | Windsurf | rules 設定 |
 | GitHub Copilot | `.github/copilot-instructions.md` |
 | OpenCode | `AGENTS.md` + skill tool |
@@ -263,6 +263,29 @@ echo "exit=$?"   # 期望: exit=2（快取命中）
 2. 確認 `hooks/hooks.json` 中的指令路徑正確解析 `${CLAUDE_PLUGIN_ROOT}`
 3. 若使用 `--plugin-dir` 本地測試，確認 Claude Code 版本支援此 flag
 4. 查看 Claude Code 的 session log（啟動時通常會印出 hook 執行結果）
+
+<!-- 更新於 2026-04-30，commit range: 1f66d57..19e49a0 -->
+**jq 未安裝的錯誤訊息（`501d226`）**：
+
+若 session 開始時看到：
+```
+agent-skills: jq is required for the session-start hook but was not found on PATH.
+Install jq (e.g. `brew install jq` or `apt-get install jq`) to enable meta-skill injection.
+Skills remain available individually.
+```
+
+這表示 `jq` 未安裝。解法：
+```bash
+# macOS
+brew install jq
+# Ubuntu/Debian
+apt-get install jq
+# Alpine
+apk add jq
+```
+
+此為 graceful fallback（非錯誤），skills 仍可個別使用。
+<!-- 更新結束 -->
 
 **hooks.json 設定：**
 
