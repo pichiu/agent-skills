@@ -107,6 +107,18 @@ agent-skills/
 │   ├── copilot-setup.md               ← GitHub Copilot 設定
 │   └── opencode-setup.md              ← OpenCode 設定
 │
+├── .gemini/commands/                  ← Gemini CLI 原生 slash commands（7 個 TOML 檔案）
+│   ├── spec.toml                      ← /spec（格式：description + prompt 欄位）
+│   ├── planning.toml                  ← /planning（注意：非 /plan，避免與 Gemini CLI 內建指令衝突）
+│   ├── build.toml                     ← /build
+│   ├── test.toml                      ← /test
+│   ├── review.toml                    ← /review
+│   ├── code-simplify.toml             ← /code-simplify
+│   └── ship.toml                      ← /ship（fan-out 邏輯適配 Gemini CLI subagent 模型）
+│
+├── .opencode/                         ← OpenCode 整合
+│   └── skills                         ← symlink → ../skills/（讓 OpenCode 自動發現技能）
+│
 ├── .github/workflows/
 │   └── test-plugin-install.yml        ← CI：validate → install 兩步驟驗證
 │
@@ -135,6 +147,8 @@ agent-skills/
 | 新增安全 checklist 項目                | `references/security-checklist.md` | 對應區塊 |
 | 新增測試 pattern                      | `references/testing-patterns.md`   | 對應區塊 |
 | 新增平台支援文件                        | `docs/<platform>-setup.md`         | 新建文件 + README 更新 |
+| 新增/修改 Gemini CLI 指令              | `.gemini/commands/<name>.toml`      | TOML 格式（description + prompt） |
+| 修改 OpenCode 技能自動發現             | `.opencode/skills`                  | symlink 指向 `../skills/` |
 | 修改 CI 驗證流程                       | `.github/workflows/test-plugin-install.yml` | 整個 YAML |
 | 修改貢獻規範                           | `CONTRIBUTING.md`                   | 對應段落 |
 | 修改 OpenCode 整合行為                 | `AGENTS.md`                         | Intent → Skill Mapping 段落 |
