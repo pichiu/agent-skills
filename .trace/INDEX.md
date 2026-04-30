@@ -24,6 +24,7 @@
 | 本地開發安裝 | `git clone https://github.com/addyosmani/agent-skills.git` → `claude --plugin-dir /path/to/agent-skills` |
 | Cursor 安裝 | `cp skills/*/SKILL.md .cursor/rules/` |
 | Gemini CLI 安裝 | `gemini skills install https://github.com/addyosmani/agent-skills.git --path skills` |
+| Gemini CLI slash commands | 從專案根目錄執行 `gemini`，自動發現 `.gemini/commands/` 下的 7 個指令（使用 `/planning` 而非 `/plan`） |
 | 驗證 plugin 結構 | `claude plugin validate .` |
 | 執行 CI 測試 | Push to GitHub → GitHub Actions 自動觸發 |
 | 啟用 SDD cache | 手動在 `.claude/settings.json` 新增 PreToolUse/PostToolUse hook |
