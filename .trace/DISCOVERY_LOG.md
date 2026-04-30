@@ -186,4 +186,27 @@
 
 ---
 
-*探索紀錄截止日期：2026-04-25 | 探索者：AI 自動化分析*
+## 增量更新記錄：1f66d57..19e49a0（2026-04-30）
+
+### 本次 Upstream 變更摘要
+
+5 個 commit，11 個檔案，包含 3 項主要功能：
+
+1. **Gemini CLI 原生 slash commands**（`54cc926`、`e6d4005`）：新增 `.gemini/commands/` 目錄，7 個 TOML 格式指令。值得注意：`/planning` 而非 `/plan`，因 `/plan` 與 Gemini CLI 內建指令衝突。
+2. **OpenCode symlink**（`36d26a6`）：`.opencode/skills -> ../skills/`，讓 OpenCode 不再需要手動設定路徑即可自動發現技能。
+3. **session-start.sh Bug Fix**（`43a0dde`、`501d226`）：修復了兩個潛在問題——JSON injection（SKILL.md 含特殊字元時 heredoc 會產生無效 JSON）以及 jq 缺失時的 graceful fallback。
+
+### 新發現
+
+- [ ] **`/planning` 命名差異需要使用者注意**：Gemini CLI 用戶習慣 `/plan` 可能因找不到指令感到困惑。`docs/gemini-cli-setup.md` 已有說明，但其他地方（如 README 的指令速查表）可考慮加注釋。
+- [ ] **jq 現在是 session-start hook 的必要依賴**：之前文件中 jq 只被標記為 SDD cache 的選用依賴。此次修改讓 jq 成為 meta-skill 注入的必要條件（雖然缺少時有 graceful fallback）。建議在 README 的 Prerequisites 中明確標注。
+- [x] **OpenCode skills symlink 解決了之前的路徑問題**：之前 `AGENTS.md` 說明 OpenCode 透過意圖映射使用技能，實際路徑設定不清楚。現在 symlink 提供了明確的整合機制。
+
+### 本次未受影響的文件
+
+- `DATA_MODEL.md`：無資料結構變更
+- `_context/recon.md`、`entry_points.md`、`core_logic.md`、`extensions.md`、`integrations.md`、`configuration.md`：基礎 context 未受影響
+
+---
+
+*探索紀錄截止日期：2026-04-30 | 探索者：AI 自動化分析*
