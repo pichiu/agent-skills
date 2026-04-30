@@ -14,7 +14,9 @@ graph TD
 
     subgraph Plugin["agent-skills Plugin"]
         MANIFEST[".claude-plugin/plugin.json"]
-        CMD_DIR[".claude/commands/\n7 slash commands"]
+        CMD_DIR[".claude/commands/\n7 slash commands (Claude Code)"]
+        GEMINI_CMD[".gemini/commands/\n7 slash commands (Gemini CLI)"]
+        OC_LINK[".opencode/skills\nsymlink → skills/"]
         HOOKS_JSON["hooks/hooks.json"]
     end
 
@@ -41,6 +43,8 @@ graph TD
     CC -->|安裝| PM
     PM -->|讀取| MANIFEST
     MANIFEST -->|掛載| CMD_DIR
+    GEMINI_CMD -->|Gemini CLI auto-discover| S_LAYER
+    OC_LINK -->|symlink| S_LAYER
     MANIFEST -->|綁定| HOOKS_JSON
     HOOKS_JSON -->|SessionStart| SH
     SH -->|注入| S_LAYER
@@ -64,6 +68,8 @@ graph TD
 |------|------|-------------|---------|---------|
 | Plugin Manifest | 宣告 plugin 名稱、版本、commands 路徑 | `.claude-plugin/plugin.json` | Claude Code Plugin Manager | Commands 層 |
 | Marketplace Manifest | Marketplace 安裝識別 | `.claude-plugin/marketplace.json` | Claude Code Marketplace | Plugin Manifest |
+| Gemini CLI Commands | Gemini CLI 原生 slash commands（TOML 格式） | `.gemini/commands/*.toml` | Gemini CLI auto-discovery | Skills 層 |
+| OpenCode Skills Symlink | 讓 OpenCode 自動發現 skills/（symlink） | `.opencode/skills` | OpenCode skill tool | Skills 層 |
 | SessionStart Hook | 每個 session 自動注入 meta-skill | `hooks/session-start.sh`, `hooks/hooks.json` | Claude Code Hook Engine | Skills 層（using-agent-skills） |
 | Meta-Skill | 技能發現導覽 flowchart + Core Operating Behaviors | `skills/using-agent-skills/SKILL.md` | SessionStart Hook | 所有 Skills |
 | Skills 層 | 21 個工程工作流程（核心） | `skills/*/SKILL.md` | Commands 層、Personas 層 | References 層 |
@@ -160,9 +166,19 @@ sequenceDiagram
 ### 3. Hook Injection（SessionStart 自動注入）
 
 ```
-Session 開始 → session-start.sh 執行 → 讀取 using-agent-skills/SKILL.md
-→ 包裝為 {"priority": "IMPORTANT", "message": "..."} → 注入 agent context
+Session 開始 → session-start.sh 執行
+→ 檢查 jq 是否可用（若無：輸出 INFO 訊息，exit 0，graceful fallback）
+→ 讀取 using-agent-skills/SKILL.md
+→ jq -cn --arg message "..." 正確 escape JSON（修復 19e49a0）
+→ 輸出 {"priority": "IMPORTANT", "message": "..."} → 注入 agent context
 ```
+
+<!-- 更新於 2026-04-30，commit range: 1f66d57..19e49a0 -->
+**session-start.sh Bug Fix（`43a0dde` + `501d226`）**：
+- 舊版以 heredoc 直接插入 `$CONTENT`，若 SKILL.md 含 `"` 或 `\` 則產生無效 JSON（JSON injection 風險）
+- 新版改用 `jq -cn --arg message` 確保正確 escape
+- 新增 jq 存在性檢查：若 jq 未安裝，輸出友善 INFO 訊息並允許 session 繼續（不中斷）
+<!-- 更新結束 -->
 
 ### 4. Progressive Disclosure（按需載入）
 
